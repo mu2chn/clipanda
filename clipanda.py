@@ -19,7 +19,7 @@ class PandaFile:
         path = urllib.parse.urlparse(json["url"]).path
         return PandaFile(filename=json["title"], directory=directory, size=int(json["size"]), path=path)    
 
-    def __init__(self, filename, directory: str, size: int, path: str):
+    def __init__(self, filename, directory: str, path: str, size=None):
         self.filename = filename
         self.directory = directory
         self.size = size
@@ -115,6 +115,17 @@ class PandaClient:
         for content in contents:
             files.append(PandaFile.fromResponse(content))
         return files
+    
+    def fetchAssignmentsAttachments(self, siteId: str):
+        path = f"direct/assignment/site/{siteId}.json"
+        res = self.__get(path)
+        contents = json.loads(res.content)["assignment_collection"]
+        files = []
+        for content in contents:
+            for attachment in content["attachments"]:
+                path = urllib.parse.urlsplit(attachment["url"]).path
+                files.append(PandaFile(attachment["name"], "attachment/"+content["title"], path=path))
+        return files
 
 class FileHandler:
 
@@ -163,7 +174,18 @@ class CommandHandler:
         for f in files:
             binary = pc.downloadFiles(f.path)
             FileHandler.saveFile(os.path.join(directory, f.directory), f.filename, binary)
-    
+
+    @staticmethod
+    def downloadAttachments(args):
+        cookieDir, cookieFile = FileHandler.splitPath(args.cookies)
+        pc = PandaClient(FileHandler.readFile(cookieDir, cookieFile))
+
+        files = pc.fetchAssignmentsAttachments(args.site_id)
+        directory = args.directory
+        for f in files:
+            binary = pc.downloadFiles(f.path)
+            FileHandler.saveFile(os.path.join(directory, f.directory), f.filename, binary)
+
     @staticmethod
     def createSession(args):
         cookies = PandaClient.createSession()
@@ -172,6 +194,7 @@ class CommandHandler:
             FileHandler.saveFile(directory, filename, cookies)  
         else:
             print(cookies)
+
 
 if __name__ == "__main__":
 
@@ -190,11 +213,17 @@ if __name__ == "__main__":
     psr_sites.add_argument("--site-type", help="course, project, portfolio etc ")
     psr_sites.add_argument("--only-site-id", action='store_true')
 
-    psr_resources = subpsrs.add_parser("save", help="see save -h")
+    psr_resources = subpsrs.add_parser("resources-dl", help="see resources-dl -h")
     psr_resources.set_defaults(handler=CommandHandler.downloadResources)
     psr_resources.add_argument("-c", "--cookies", required=True, metavar="COOKIE_FILE", help="select cookies file")
     psr_resources.add_argument("-s", "--site-id", required=True, help="select site id")
     psr_resources.add_argument("-d", "--directory", default="content/", help="select site id")
+
+    psr_attachments = subpsrs.add_parser("attachments-dl", help="see attachments-dl -h")
+    psr_attachments.set_defaults(handler=CommandHandler.downloadAttachments)
+    psr_attachments.add_argument("-c", "--cookies", required=True, metavar="COOKIE_FILE", help="select cookies file")
+    psr_attachments.add_argument("-s", "--site-id", required=True, help="select site id")
+    psr_attachments.add_argument("-d", "--directory", default="content/", help="select site id")
 
     args = psr.parse_args()
 

@@ -35,10 +35,16 @@ $ clipanda sites -c {cookie-file} --site-type course
 ### download resources
 各サイト（講義）の資料の一括ダウンロードが可能です。
 ```
-$ clipanda save -c {cookie-file} -s {site-id}
+$ clipanda resources-dl -c {cookie-file} -s {site-id}
 ```
 `site-id`は`clipanda sites`コマンドを用いて取得します。
 `-d`オプションを指定することでダウンロード先のディレクトリを指定できます。
 
 その他細かいオプションは`-h`オプションを指定して確認して下さい。
 
+## download assignments
+各サイト（講義）の課題の一括ダウンロードも可能です。
+```
+$ clipanda attachments-dl -c {cookie-file} -s {site-id}
+```
+オプションは`clipanda resources-dl`とほぼ同じです。
