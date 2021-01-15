@@ -1,6 +1,6 @@
 import requests as rq
 import urllib.parse
-import argparse
+import argparse, os
 from http.cookies import SimpleCookie
 from bs4 import BeautifulSoup
 
@@ -10,7 +10,7 @@ class Config:
         self.command = command
 
 class HttpResponse:
-    def __init__(self, status: int, content: str):
+    def __init__(self, status: int, content):
         self.status = status
         self.content = content
 
@@ -19,14 +19,18 @@ class PandaClient:
     baseurl = "https://panda.ecs.kyoto-u.ac.jp"
     parser = "html5lib"
 
+    @staticmethod
+    def absolutePath(path):
+        return urllib.parse.urljoin(PandaClient.baseurl, path)
+
     def __init__(self, cookies: str):
         self.__cookies = cookies
 
     def __covertRespose(self, res):
-        return HttpResponse(res.status_code, res.text)
+        return HttpResponse(res.status_code, res.content)
 
     def __get(self, relativePath: str):
-        url = urllib.parse.urljoin(PandaClient.baseurl, relativePath)
+        url = PandaClient.absolutePath(relativePath)
         sc = SimpleCookie()
         sc.load(self.__cookies)
         cookieDict = {}
@@ -40,6 +44,10 @@ class PandaClient:
         soup = BeautifulSoup(res.content, PandaClient.parser)
         url = soup.find("iframe").attrs["src"]
         return urllib.parse.urlparse(url).path
+
+    def downloadFiles(self, path: str):
+        res = self.__get(path)
+        return res.content        
 
     def fetchSites(self):
         path = "portal"
@@ -94,6 +102,11 @@ class PandaClient:
         except KeyError:
             return path
 
+def saveFile(directory, filename, content):
+    os.makedirs(directory, exist_ok=True)
+    with open(os.path.join(directory, filename), "wb") as f:
+        f.write(content)
+
 def createConfig():
     psr = argparse.ArgumentParser(description="pandaのclitools")
     psr.add_argument("command", help="[list]")
@@ -112,6 +125,14 @@ if __name__ == "__main__":
             print(f"{site['siteId']}: {site['name']}")
     elif config.command == "resources":
         res = pc.fetchResources("2020-110-9079-000")
-        
+        def dowmloads(res, baseDir="content/"):
+            for r in res:
+                if r["type"] == "file":
+                    binary = pc.downloadFiles(r["href"])
+                    saveFile(baseDir, r["name"], binary)
+                    pass
+                elif r["type"] == "folder":
+                    dowmloads(r["children"], baseDir=os.path.join(baseDir, r["name"]))
+        dowmloads(res)
     else:
         print("コマンドが無効です")
