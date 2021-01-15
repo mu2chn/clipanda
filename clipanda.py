@@ -1,6 +1,6 @@
 import requests as rq
 import urllib.parse
-import argparse, os, json, re
+import argparse, os, json, re, getpass
 from http.cookies import SimpleCookie
 
 # sakai reference
@@ -72,6 +72,11 @@ class PandaClient:
 
     @staticmethod
     def createSession():
+        passwd = None
+        if args.password == None:
+            passwd = getpass.getpass()
+        else:
+            passwd = args.password
         baseUrl = "https://cas.ecs.kyoto-u.ac.jp"
         loginPath = baseUrl + "/cas/login?service=https%3A%2F%2Fpanda.ecs.kyoto-u.ac.jp%2Fsakai-login-tool%2Fcontainer"
         res = rq.get(loginPath)
@@ -82,8 +87,8 @@ class PandaClient:
         lt = re.sub(r'(<input type="hidden" name="lt" value="|" />)', '', ltTag)
         resp = rq.post(baseUrl+postPath, data=urllib.parse.urlencode({
             "lt": lt,
-            "password": "Woodentable478",
-            "username": "a0187164",
+            "password": passwd,
+            "username": args.username,
             "execution": "e1s1",
             "_eventId": "submit",
             "submit": "LOGIN"
@@ -133,7 +138,7 @@ class FileHandler:
     def splitPath(filepath: str):
          return (os.path.dirname(filepath), os.path.basename(filepath))
 
-class CommandHandler:    
+class CommandHandler:
     @staticmethod
     def list(args):
         cookieDir, cookieFile = FileHandler.splitPath(args.cookies)
@@ -162,7 +167,7 @@ class CommandHandler:
     @staticmethod
     def createSession(args):
         cookies = PandaClient.createSession()
-        if hasattr(args, "output"):
+        if args.output != None:
             directory, filename = FileHandler.splitPath(args.output)
             FileHandler.saveFile(directory, filename, cookies)  
         else:
@@ -172,23 +177,24 @@ if __name__ == "__main__":
 
     psr = argparse.ArgumentParser(description="cli tools for panda")
     subpsrs = psr.add_subparsers()
+
+    psr_session = subpsrs.add_parser("login", help="see login -h")
+    psr_session.add_argument("-u", "--username", required=True, help="ecs-id")
+    psr_session.add_argument("-p", "--password", help="if not selected, show prompt.")
+    psr_session.add_argument("-o", "--output", help="cookie output file")
+    psr_session.set_defaults(handler=CommandHandler.createSession)
     
     psr_sites = subpsrs.add_parser("sites", help="see sites -h")
     psr_sites.set_defaults(handler=CommandHandler.list)
-    psr_sites.add_argument("-c", "--cookies", required=True, metavar="cookie.txt", help="select cookies file")
-    psr_sites.add_argument("--site-type", metavar="course", help="course, project, portfolio etc ")
+    psr_sites.add_argument("-c", "--cookies", required=True, metavar="COOKIE_FILE", help="select cookies file")
+    psr_sites.add_argument("--site-type", help="course, project, portfolio etc ")
     psr_sites.add_argument("--only-site-id", action='store_true')
 
     psr_resources = subpsrs.add_parser("save", help="see save -h")
     psr_resources.set_defaults(handler=CommandHandler.downloadResources)
-    psr_resources.add_argument("-c", "--cookies", required=True, metavar="cookie.txt", help="select cookies file")
+    psr_resources.add_argument("-c", "--cookies", required=True, metavar="COOKIE_FILE", help="select cookies file")
     psr_resources.add_argument("-s", "--site-id", required=True, help="select site id")
     psr_resources.add_argument("-d", "--directory", default="content/", help="select site id")
-
-    psr_session = subpsrs.add_parser("login", help="see login -h")
-    psr_session.add_argument("-o", "--output", help="cookie output file")
-    psr_session.set_defaults(handler=CommandHandler.createSession)
-
 
     args = psr.parse_args()
 
