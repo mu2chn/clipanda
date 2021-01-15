@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
-            "args": ["sites", "-c", "JSESSIONID=59271fcc-e25b-4873-a5ab-eaa8410c56ca.panda2g", "--only-site-id"]
+            "args": ["sites", "-c", "JSESSIONID=5fcd16cb-1161-4cec-9ba7-4bdcc09c6a9e.panda9g;"]
         }
     ]
 }

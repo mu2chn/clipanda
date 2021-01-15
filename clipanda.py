@@ -1,18 +1,49 @@
 import requests as rq
 import urllib.parse
-import argparse, os
+import argparse, os, json, re
 from http.cookies import SimpleCookie
-from bs4 import BeautifulSoup
+
+# sakai reference
+# https://confluence.sakaiproject.org/download/attachments/75662075/KeitaiAPI.pdf
 
 class HttpResponse:
     def __init__(self, status: int, content):
         self.status = status
         self.content = content
 
+class PandaFile:
+
+    @staticmethod
+    def fromResponse(json):
+        directory = "/".join(json["container"].split("/")[4:])
+        path = urllib.parse.urlparse(json["url"]).path
+        return PandaFile(filename=json["title"], directory=directory, size=int(json["size"]), path=path)    
+
+    def __init__(self, filename, directory: str, size: int, path: str):
+        self.filename = filename
+        self.directory = directory
+        self.size = size
+        # path of url
+        self.path = path
+
+    def localPath(self):
+        return os.path.join(self.directory, self.filename)
+
+class PandaSite:
+
+    @staticmethod
+    def fromResponse(json):
+        return PandaSite(json["id"], json["type"], name=json["title"])
+
+    def __init__(self, siteId: str, sitetype: str, name=""):
+        self.siteId = siteId
+        self.name = name
+        # course or project
+        self.sitetype = sitetype
+
 class PandaClient:
     
     baseurl = "https://panda.ecs.kyoto-u.ac.jp"
-    parser = "html5lib"
 
     @staticmethod
     def absolutePath(path):
@@ -21,7 +52,8 @@ class PandaClient:
     def __init__(self, cookies: str):
         self.__cookies = cookies
 
-    def __covertRespose(self, res):
+    @staticmethod
+    def __covertRespose(res):
         return HttpResponse(res.status_code, res.content)
 
     def __get(self, relativePath: str):
@@ -32,52 +64,57 @@ class PandaClient:
         for key, morsel in sc.items():
             cookieDict[key] = morsel.coded_value
         res = rq.get(url, cookies=cookieDict)
-        return self.__covertRespose(res)
-
-    def __fetchIframePath(self, path):
-        res = self.__get(path)
-        soup = BeautifulSoup(res.content, PandaClient.parser)
-        url = soup.find("iframe").attrs["src"]
-        return urllib.parse.urlparse(url).path
+        return PandaClient.__covertRespose(res)
 
     def downloadFiles(self, path: str):
         res = self.__get(path)
-        return res.content        
+        return res.content
+
+    @staticmethod
+    def createSession():
+        baseUrl = "https://cas.ecs.kyoto-u.ac.jp"
+        loginPath = baseUrl + "/cas/login?service=https%3A%2F%2Fpanda.ecs.kyoto-u.ac.jp%2Fsakai-login-tool%2Fcontainer"
+        res = rq.get(loginPath)
+        html = str(PandaClient.__covertRespose(res).content)
+        formTag = re.search(r'<form id="fm1" class="fm-v clearfix" action=".+" method="post">', html).group()
+        postPath = re.sub(r'(<form id="fm1" class="fm-v clearfix" action="|" method="post">)', '', formTag)
+        ltTag = re.search(r'<input type="hidden" name="lt" value="[a-z A-Z 0-9 \-]+" />', html).group()
+        lt = re.sub(r'(<input type="hidden" name="lt" value="|" />)', '', ltTag)
+        resp = rq.post(baseUrl+postPath, data=urllib.parse.urlencode({
+            "lt": lt,
+            "password": "Woodentable478",
+            "username": "a0187164",
+            "execution": "e1s1",
+            "_eventId": "submit",
+            "submit": "LOGIN"
+        }), headers={'Content-Type': 'application/x-www-form-urlencoded'})
+        cookieLists = []
+        for key, value in resp.history[1].cookies.items():
+            cookieLists.append(f"{key}={value};")
+        return "".join(cookieLists)
 
     def fetchSites(self):
-        path = "portal"
+        path = "direct/site.json"
         res = self.__get(path)
-        siteMaps = []
-        soup = BeautifulSoup(res.content, PandaClient.parser)
-        for tag in soup.find_all("li", class_="nav-menu")[1:]:
-            atag = tag.find("a")
-            siteMaps.append({
-                "name": atag.attrs["title"],
-                "siteId": atag.attrs["href"].split("/")[-1]
-            })
-        return siteMaps
+        contents = json.loads(res.content)["site_collection"]
+        sites = []
+        for content in contents:
+            sites.append(PandaSite.fromResponse(content))
+        return sites
 
     def fetchResources(self, siteId: str):
-        path = f"access/content/group/{siteId}/"
+        path = f"direct/content/site/{siteId}.json"
         res = self.__get(path)
-        soup = BeautifulSoup(res.content, PandaClient.parser)
-        resourceMaps = []
-        for tag in soup.find_all("li")[1:]:
-            if(tag["class"][0] == "folder"):
-                atag = tag.find("a")
-                resourceMaps.append({
-                    "type": "folder",
-                    "children": self.fetchResources(f"{siteId}/{atag.attrs['href']}"),
-                    "name": atag.get_text(strip=True)
-                })
-            elif(tag["class"][0] == "file"):
-                atag = tag.find("a")
-                resourceMaps.append({
-                    "type": "file",
-                    "href": path+atag.attrs["href"],
-                    "name": atag.get_text(strip=True)
-                })
-        return resourceMaps
+        contents = json.loads(res.content)["content_collection"]
+        files = []
+        for content in contents:
+            files.append(PandaFile.fromResponse(content))
+        return files
+
+def saveFile(directory, filename, content):
+    os.makedirs(directory, exist_ok=True)
+    with open(os.path.join(directory, filename), "wb") as f:
+        f.write(content)
 
 class CommandHandler:
 
@@ -86,30 +123,26 @@ class CommandHandler:
         pc = PandaClient(args.cookies)
         sites = pc.fetchSites()
         for site in sites:
+            if args.site_type != None and args.site_type != site.sitetype:
+                break
             if args.only_site_id:
-                print(f"{site['siteId']}")
+                print(f"{site.siteId}")
             else:
-                print(f"{site['siteId']}: {site['name']}")
+                print(f"{site.siteId}: {site.name}")
 
     @staticmethod
     def downloadResources(args):
         pc = PandaClient(args.cookies)
-        res = pc.fetchResources(args.site_id)
+        files = pc.fetchResources(args.site_id)
         directory = args.directory
-        def dowmloads(res, baseDir=directory):
-            for r in res:
-                if r["type"] == "file":
-                    binary = pc.downloadFiles(r["href"])
-                    saveFile(baseDir, r["name"], binary)
-                    pass
-                elif r["type"] == "folder":
-                    dowmloads(r["children"], baseDir=os.path.join(baseDir, r["name"]))
-        dowmloads(res)
-
-def saveFile(directory, filename, content):
-    os.makedirs(directory, exist_ok=True)
-    with open(os.path.join(directory, filename), "wb") as f:
-        f.write(content)
+        for f in files:
+            binary = pc.downloadFiles(f.path)
+            saveFile(os.path.join(directory, f.directory), f.filename, binary)
+    
+    @staticmethod
+    def createSession(args):
+        cookies = PandaClient.createSession()
+        print(cookies)
 
 if __name__ == "__main__":
 
@@ -119,6 +152,7 @@ if __name__ == "__main__":
     psr_sites = subpsrs.add_parser("sites", help="see sites -h")
     psr_sites.set_defaults(handler=CommandHandler.list)
     psr_sites.add_argument("-c", "--cookies", required=True, help="select cookies")
+    psr_sites.add_argument("--site-type", metavar="course", help="course, project, portfolio etc ")
     psr_sites.add_argument("--only-site-id", action='store_true')
 
     psr_resources = subpsrs.add_parser("save", help="see save -h")
@@ -126,6 +160,10 @@ if __name__ == "__main__":
     psr_resources.add_argument("-c", "--cookies", required=True, help="select cookies")
     psr_resources.add_argument("-s", "--site-id", required=True, help="select site id")
     psr_resources.add_argument("-d", "--directory", default="content/", help="select site id")
+
+    psr_session = subpsrs.add_parser("login", help="see login -h")
+    psr_session.set_defaults(handler=CommandHandler.createSession)
+
 
     args = psr.parse_args()
 
