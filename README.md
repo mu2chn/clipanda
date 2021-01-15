@@ -8,7 +8,7 @@
 
 ## 使い方
 
-### login
+### ログイン
 ほとんどの操作でログインが必要なため、`clipanda login`コマンドを用いてcookieを書き出します。
 
 認証が必要なページは書き出されたcookieを指定することでアクセスが可能です。
@@ -22,7 +22,7 @@ Password:
 $ clipanda login -u {ecs-id} -p {password} -o {cookie-output-file}
 ```
 
-### show sites
+### サイト一覧を表示
 ```
 $ clipanda sites -c {cookie-file}
 ```
@@ -32,7 +32,7 @@ $ clipanda sites -c {cookie-file} --site-type course
 ```
 `--only-site-id`は`site-id`のみを出力します。
 
-### download resources
+### 授業資料をダウンロード
 各サイト（講義）の資料の一括ダウンロードが可能です。
 ```
 $ clipanda resources-dl -c {cookie-file} -s {site-id}
@@ -42,7 +42,7 @@ $ clipanda resources-dl -c {cookie-file} -s {site-id}
 
 その他細かいオプションは`-h`オプションを指定して確認して下さい。
 
-## download assignments
+## 課題ファイルをダウンロード
 各サイト（講義）の課題の一括ダウンロードも可能です。
 ```
 $ clipanda attachments-dl -c {cookie-file} -s {site-id}
