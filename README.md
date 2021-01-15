@@ -42,7 +42,7 @@ $ clipanda resources-dl -c {cookie-file} -s {site-id}
 
 その他細かいオプションは`-h`オプションを指定して確認して下さい。
 
-## 課題ファイルをダウンロード
+### 課題ファイルをダウンロード
 各サイト（講義）の課題の一括ダウンロードも可能です。
 ```
 $ clipanda attachments-dl -c {cookie-file} -s {site-id}
