@@ -4,11 +4,6 @@ import argparse, os
 from http.cookies import SimpleCookie
 from bs4 import BeautifulSoup
 
-class Config:
-    def __init__(self, cookies=None, command="help"):
-        self.cookies = cookies
-        self.command = command
-
 class HttpResponse:
     def __init__(self, status: int, content):
         self.status = status
@@ -84,48 +79,24 @@ class PandaClient:
                 })
         return resourceMaps
 
-    def getSideLink(self, siteId: str, page: str):
-        pageMap = {
-            "home": 0,
-            "resources": "授業資料（リソース）"
-        }
-        path = f"portal/site/{siteId}"
-        res = self.__get(path)
-        soup = BeautifulSoup(res.content, PandaClient.parser)
-        atag = None
-        for tag in soup.find_all("a", class_="toolMenuLink"):
-            if tag.find_all("span")[1].get_text(strip=True) == pageMap[page]:
-                atag = tag
-                break
-        try:
-            return atag.attrs["href"]
-        except KeyError:
-            return path
+class CommandHandler:
 
-def saveFile(directory, filename, content):
-    os.makedirs(directory, exist_ok=True)
-    with open(os.path.join(directory, filename), "wb") as f:
-        f.write(content)
-
-def createConfig():
-    psr = argparse.ArgumentParser(description="pandaのclitools")
-    psr.add_argument("command", help="[list]")
-    psr.add_argument("cookies", help="cookieを指定して下さい")
-    args = psr.parse_args()
-    return Config(cookies=args.cookies, command=args.command)
-
-if __name__ == "__main__":
-    config = Config(command="resources", cookies="JSESSIONID=59271fcc-e25b-4873-a5ab-eaa8410c56ca.panda2g")#createConfig()
-    
-    pc = PandaClient(config.cookies)
-
-    if config.command == "list":
+    @staticmethod
+    def list(args):
+        pc = PandaClient(args.cookies)
         sites = pc.fetchSites()
         for site in sites:
-            print(f"{site['siteId']}: {site['name']}")
-    elif config.command == "resources":
-        res = pc.fetchResources("2020-110-9079-000")
-        def dowmloads(res, baseDir="content/"):
+            if args.only_site_id:
+                print(f"{site['siteId']}")
+            else:
+                print(f"{site['siteId']}: {site['name']}")
+
+    @staticmethod
+    def downloadResources(args):
+        pc = PandaClient(args.cookies)
+        res = pc.fetchResources(args.site_id)
+        directory = args.directory
+        def dowmloads(res, baseDir=directory):
             for r in res:
                 if r["type"] == "file":
                     binary = pc.downloadFiles(r["href"])
@@ -134,5 +105,31 @@ if __name__ == "__main__":
                 elif r["type"] == "folder":
                     dowmloads(r["children"], baseDir=os.path.join(baseDir, r["name"]))
         dowmloads(res)
+
+def saveFile(directory, filename, content):
+    os.makedirs(directory, exist_ok=True)
+    with open(os.path.join(directory, filename), "wb") as f:
+        f.write(content)
+
+if __name__ == "__main__":
+
+    psr = argparse.ArgumentParser(description="cli tools for panda")
+    subpsrs = psr.add_subparsers()
+    
+    psr_sites = subpsrs.add_parser("sites", help="see sites -h")
+    psr_sites.set_defaults(handler=CommandHandler.list)
+    psr_sites.add_argument("-c", "--cookies", required=True, help="select cookies")
+    psr_sites.add_argument("--only-site-id", action='store_true')
+
+    psr_resources = subpsrs.add_parser("save", help="see save -h")
+    psr_resources.set_defaults(handler=CommandHandler.downloadResources)
+    psr_resources.add_argument("-c", "--cookies", required=True, help="select cookies")
+    psr_resources.add_argument("-s", "--site-id", required=True, help="select site id")
+    psr_resources.add_argument("-d", "--directory", default="content/", help="select site id")
+
+    args = psr.parse_args()
+
+    if hasattr(args, 'handler'):
+        args.handler(args)
     else:
-        print("コマンドが無効です")
+        psr.print_help()
