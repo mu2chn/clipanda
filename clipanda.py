@@ -111,16 +111,34 @@ class PandaClient:
             files.append(PandaFile.fromResponse(content))
         return files
 
-def saveFile(directory, filename, content):
-    os.makedirs(directory, exist_ok=True)
-    with open(os.path.join(directory, filename), "wb") as f:
-        f.write(content)
-
-class CommandHandler:
+class FileHandler:
 
     @staticmethod
+    def saveFile(directory, filename, content):
+        if directory != "":
+            os.makedirs(directory, exist_ok=True)
+        if type(content) is str:
+            with open(os.path.join(directory, filename), "w") as f:
+                f.write(content)
+        else:
+            with open(os.path.join(directory, filename), "wb") as f:
+                f.write(content)
+
+    @staticmethod
+    def readFile(directory, filename):
+        with open(os.path.join(directory, filename)) as f:
+            return f.read()
+
+    @staticmethod
+    def splitPath(filepath: str):
+         return (os.path.dirname(filepath), os.path.basename(filepath))
+
+class CommandHandler:    
+    @staticmethod
     def list(args):
-        pc = PandaClient(args.cookies)
+        cookieDir, cookieFile = FileHandler.splitPath(args.cookies)
+        pc = PandaClient(FileHandler.readFile(cookieDir, cookieFile))
+
         sites = pc.fetchSites()
         for site in sites:
             if args.site_type != None and args.site_type != site.sitetype:
@@ -132,17 +150,23 @@ class CommandHandler:
 
     @staticmethod
     def downloadResources(args):
-        pc = PandaClient(args.cookies)
+        cookieDir, cookieFile = FileHandler.splitPath(args.cookies)
+        pc = PandaClient(FileHandler.readFile(cookieDir, cookieFile))
+
         files = pc.fetchResources(args.site_id)
         directory = args.directory
         for f in files:
             binary = pc.downloadFiles(f.path)
-            saveFile(os.path.join(directory, f.directory), f.filename, binary)
+            FileHandler.saveFile(os.path.join(directory, f.directory), f.filename, binary)
     
     @staticmethod
     def createSession(args):
         cookies = PandaClient.createSession()
-        print(cookies)
+        if hasattr(args, "output"):
+            directory, filename = FileHandler.splitPath(args.output)
+            FileHandler.saveFile(directory, filename, cookies)  
+        else:
+            print(cookies)
 
 if __name__ == "__main__":
 
@@ -151,17 +175,18 @@ if __name__ == "__main__":
     
     psr_sites = subpsrs.add_parser("sites", help="see sites -h")
     psr_sites.set_defaults(handler=CommandHandler.list)
-    psr_sites.add_argument("-c", "--cookies", required=True, help="select cookies")
+    psr_sites.add_argument("-c", "--cookies", required=True, metavar="cookie.txt", help="select cookies file")
     psr_sites.add_argument("--site-type", metavar="course", help="course, project, portfolio etc ")
     psr_sites.add_argument("--only-site-id", action='store_true')
 
     psr_resources = subpsrs.add_parser("save", help="see save -h")
     psr_resources.set_defaults(handler=CommandHandler.downloadResources)
-    psr_resources.add_argument("-c", "--cookies", required=True, help="select cookies")
+    psr_resources.add_argument("-c", "--cookies", required=True, metavar="cookie.txt", help="select cookies file")
     psr_resources.add_argument("-s", "--site-id", required=True, help="select site id")
     psr_resources.add_argument("-d", "--directory", default="content/", help="select site id")
 
     psr_session = subpsrs.add_parser("login", help="see login -h")
+    psr_session.add_argument("-o", "--output", help="cookie output file")
     psr_session.set_defaults(handler=CommandHandler.createSession)
 
 
