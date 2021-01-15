@@ -54,29 +54,41 @@ class PandaClient:
             })
         return siteMaps
 
-    def fetchResources(self, path: str):
-        iframePath = self.__fetchIframePath(path)
-        res = self.__get(iframePath)
+    def fetchResources(self, siteId: str):
+        path = f"access/content/group/{siteId}/"
+        res = self.__get(path)
         soup = BeautifulSoup(res.content, PandaClient.parser)
         resourceMaps = []
-        for tag in soup.find_all("td", class_="specialLink")[1:]:
-            atag = tag.find_all("a")[1]
-            resourceMaps.append({
-                "type": "file",
-                "href": atag.attrs["href"],
-                "name": atag.get_text(strip=True)
-            })
+        for tag in soup.find_all("li")[1:]:
+            if(tag["class"][0] == "folder"):
+                atag = tag.find("a")
+                resourceMaps.append({
+                    "type": "folder",
+                    "children": self.fetchResources(f"{siteId}/{atag.attrs['href']}"),
+                    "name": atag.get_text(strip=True)
+                })
+            elif(tag["class"][0] == "file"):
+                atag = tag.find("a")
+                resourceMaps.append({
+                    "type": "file",
+                    "href": path+atag.attrs["href"],
+                    "name": atag.get_text(strip=True)
+                })
         return resourceMaps
 
     def getSideLink(self, siteId: str, page: str):
         pageMap = {
             "home": 0,
-            "resources": 3
+            "resources": "授業資料（リソース）"
         }
         path = f"portal/site/{siteId}"
         res = self.__get(path)
         soup = BeautifulSoup(res.content, PandaClient.parser)
-        atag = soup.find_all("a", class_="toolMenuLink")[pageMap[page]]
+        atag = None
+        for tag in soup.find_all("a", class_="toolMenuLink"):
+            if tag.find_all("span")[1].get_text(strip=True) == pageMap[page]:
+                atag = tag
+                break
         try:
             return atag.attrs["href"]
         except KeyError:
@@ -99,8 +111,7 @@ if __name__ == "__main__":
         for site in sites:
             print(f"{site['siteId']}: {site['name']}")
     elif config.command == "resources":
-        path = pc.getSideLink("2020-110-9104-000", "resources")
-        res = pc.fetchResources(path)
-        print(res)
+        res = pc.fetchResources("2020-110-9079-000")
+        
     else:
         print("コマンドが無効です")
