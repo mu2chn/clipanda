@@ -218,7 +218,7 @@ if __name__ == "__main__":
     psr_resources.add_argument("-s", "--site-id", required=True, help="select site id")
     psr_resources.add_argument("-d", "--directory", default="content/", help="select site id")
 
-    psr_attachments = subpsrs.add_parser("attachments-dl", help="see attachments-dl -h")
+    psr_attachments = subpsrs.add_parser("assignments-dl", help="see assignments-dl -h")
     psr_attachments.set_defaults(handler=CommandHandler.downloadAttachments)
     psr_attachments.add_argument("-c", "--cookies", required=True, default="cookie", metavar="COOKIE_FILE", help="select cookies file")
     psr_attachments.add_argument("-s", "--site-id", required=True, help="select site id")

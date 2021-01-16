@@ -45,6 +45,6 @@ $ clipanda resources-dl -c {cookie-file} -s {site-id}
 ### 課題ファイルをダウンロード
 各サイト（講義）の課題の一括ダウンロードも可能です。
 ```
-$ clipanda attachments-dl -c {cookie-file} -s {site-id}
+$ clipanda assignments-dl -c {cookie-file} -s {site-id}
 ```
 オプションは`clipanda resources-dl`とほぼ同じです。
