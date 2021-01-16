@@ -5,7 +5,7 @@
 ## インストール
 
 ### using system installed python
-`requests`モジュールにに依存しています。pipなどを用いて予めインストールして置いて下さい。
+`requests`モジュールに依存しています。pipなどを用いて予めインストールして置いて下さい。
 
 ```
 $ python3 -m pip install requests
