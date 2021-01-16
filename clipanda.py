@@ -139,7 +139,7 @@ class PandaClient:
         for content in contents:
             for attachment in content["attachments"]:
                 path = urllib.parse.urlsplit(attachment["url"]).path
-                files.append(PandaFile(attachment["name"], "attachment/"+content["title"], path=path))
+                files.append(PandaFile(attachment["name"], "assignments/"+content["title"], path=path))
         return files
 
 
