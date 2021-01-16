@@ -1,4 +1,4 @@
-.PHONY: clean build dependency buildwin
+.PHONY: clean build dependency buildwin install
 
 clean:
 	rm -rf build/
@@ -14,3 +14,6 @@ build:
 
 dependency:
 	python3 -m pip install pyinstaller requests
+
+install:
+	cp ./dist/clipanda ~/.local/bin/

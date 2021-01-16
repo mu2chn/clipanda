@@ -1,6 +1,6 @@
 import requests as rq
 import urllib.parse
-import argparse, os, json, re, getpass
+import argparse, os, json, re, getpass, sys
 from http.cookies import SimpleCookie
 
 # sakai reference
@@ -44,6 +44,11 @@ class PandaSite:
         self.sitetype = sitetype
 
 
+class LoginFailedException(Exception):
+    def __str__(self):
+        return "login faild. Is ecs-id or password correct?"
+
+
 class PandaClient:
     
     baseurl = "https://panda.ecs.kyoto-u.ac.jp"
@@ -74,30 +79,27 @@ class PandaClient:
         return res.content
 
     @staticmethod
-    def createSession():
-        passwd = None
-        if args.password == None:
-            passwd = getpass.getpass()
-        else:
-            passwd = args.password
+    def createSession(username, password):
         baseUrl = "https://cas.ecs.kyoto-u.ac.jp"
         loginPath = baseUrl + "/cas/login?service=https%3A%2F%2Fpanda.ecs.kyoto-u.ac.jp%2Fsakai-login-tool%2Fcontainer"
-        res = rq.get(loginPath)
-        html = str(PandaClient.__covertRespose(res).content)
+        getResp = rq.get(loginPath)
+        html = str(PandaClient.__covertRespose(getResp).content)
         formTag = re.search(r'<form id="fm1" class="fm-v clearfix" action=".+" method="post">', html).group()
         postPath = re.sub(r'(<form id="fm1" class="fm-v clearfix" action="|" method="post">)', '', formTag)
         ltTag = re.search(r'<input type="hidden" name="lt" value="[a-z A-Z 0-9 \-]+" />', html).group()
         lt = re.sub(r'(<input type="hidden" name="lt" value="|" />)', '', ltTag)
-        resp = rq.post(baseUrl+postPath, data=urllib.parse.urlencode({
+        postResp = rq.post(baseUrl+postPath, data=urllib.parse.urlencode({
             "lt": lt,
-            "password": passwd,
-            "username": args.username,
+            "password": password,
+            "username": username,
             "execution": "e1s1",
             "_eventId": "submit",
             "submit": "LOGIN"
         }), headers={'Content-Type': 'application/x-www-form-urlencoded'})
+        if len(postResp.history) != 3:
+            raise LoginFailedException()
         cookieLists = []
-        for key, value in resp.history[1].cookies.items():
+        for key, value in postResp.history[1].cookies.items():
             cookieLists.append(f"{key}={value};")
         return "".join(cookieLists)
 
@@ -174,26 +176,27 @@ class CommandHandler:
         pc = PandaClient(cookies)
 
         files = pc.fetchResources(args.site_id)
-        directory = args.directory
         for f in files:
             binary = pc.downloadFiles(f.path)
-            FileHandler.saveFile(os.path.join(directory, f.directory), f.filename, binary)
+            FileHandler.saveFile(os.path.join(args.directory, f.directory), f.filename, binary)
 
     @staticmethod
     def downloadAttachments(args, cookies):
         pc = PandaClient(cookies)
 
         files = pc.fetchAssignmentsAttachments(args.site_id)
-        directory = args.directory
         for f in files:
             binary = pc.downloadFiles(f.path)
-            FileHandler.saveFile(os.path.join(directory, f.directory), f.filename, binary)
+            FileHandler.saveFile(os.path.join(args.directory, f.directory), f.filename, binary)
 
     @staticmethod
-    def createSession(args):
-        cookies = PandaClient.createSession()
-        directory, filename = FileHandler.splitPath(args.output)
-        FileHandler.saveFile(directory, filename, cookies)  
+    def createSession(args, cookies):
+        cookies = PandaClient.createSession(args.username, args.password if args.password != None else getpass.getpass())
+        if args.output == None:
+            print(cookies)
+        else:
+            directory, filename = FileHandler.splitPath(args.output)
+            FileHandler.saveFile(directory, filename, cookies)  
 
 if __name__ == "__main__":
 
@@ -203,24 +206,24 @@ if __name__ == "__main__":
     psr_session = subpsrs.add_parser("login", help="see login -h")
     psr_session.add_argument("-u", "--username", required=True, help="ecs-id")
     psr_session.add_argument("-p", "--password", help="if not selected, show prompt.")
-    psr_session.add_argument("-o", "--output", default="cookie", help="cookie output file")
+    psr_session.add_argument("-o", "--output", nargs="?", const="cookie", help="cookie output file. if blank, 'coookie'")
     psr_session.set_defaults(handler=CommandHandler.createSession)
     
     psr_sites = subpsrs.add_parser("sites", help="see sites -h")
     psr_sites.set_defaults(handler=CommandHandler.list)
-    psr_sites.add_argument("-c", "--cookies", required=True, default="cookie", metavar="COOKIE_FILE", help="select cookies file")
+    psr_sites.add_argument("-c", "--cookies", default="cookie", metavar="COOKIE_FILE", help="select cookies file")
     psr_sites.add_argument("--site-type", help="course, project, portfolio etc ")
     psr_sites.add_argument("--only-site-id", action='store_true')
 
     psr_resources = subpsrs.add_parser("resources-dl", help="see resources-dl -h")
     psr_resources.set_defaults(handler=CommandHandler.downloadResources)
-    psr_resources.add_argument("-c", "--cookies", required=True, default="cookie", metavar="COOKIE_FILE", help="select cookies file")
+    psr_resources.add_argument("-c", "--cookies", default="cookie", metavar="COOKIE_FILE", help="select cookies file")
     psr_resources.add_argument("-s", "--site-id", required=True, help="select site id")
     psr_resources.add_argument("-d", "--directory", default="content/", help="select site id")
 
     psr_attachments = subpsrs.add_parser("assignments-dl", help="see assignments-dl -h")
     psr_attachments.set_defaults(handler=CommandHandler.downloadAttachments)
-    psr_attachments.add_argument("-c", "--cookies", required=True, default="cookie", metavar="COOKIE_FILE", help="select cookies file")
+    psr_attachments.add_argument("-c", "--cookies", default="cookie", metavar="COOKIE_FILE", help="select cookies file")
     psr_attachments.add_argument("-s", "--site-id", required=True, help="select site id")
     psr_attachments.add_argument("-d", "--directory", default="content/", help="select site id")
 
