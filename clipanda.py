@@ -232,7 +232,11 @@ if __name__ == "__main__":
     if hasattr(args, 'handler'):
         if hasattr(args, "cookies"):
             cookieDir, cookieFile = FileHandler.splitPath(args.cookies)
-            cookie = FileHandler.readFile(cookieDir, cookieFile)
+            cookie = None
+            try:
+                cookie = FileHandler.readFile(cookieDir, cookieFile)
+            except FileNotFoundError:
+                raise FileNotFoundError("cookie file cannot open. use -c to set correct cookie file.")
             args.handler(args, cookie)
         else:
             args.handler(args, None)
