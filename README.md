@@ -8,8 +8,8 @@
 `requests`モジュールに依存しています。pipなどを用いて予めインストールしておいて下さい。
 
 ```
-$ curl -sLO https://raw.githubusercontent.com/face0u0/clipanda/master/clipanda.py 
 $ python3 -m pip install requests
+$ curl -sLO https://raw.githubusercontent.com/face0u0/clipanda/master/clipanda.py 
 $ python3 clipanda.py -h
 ```
 
