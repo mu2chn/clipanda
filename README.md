@@ -5,8 +5,31 @@
 ## ダウンロード
 [こちら](https://github.com/face0u0/clipanda/releases)からダウンロードできます。
 
+## インストール
+
+### using system installed python
+`requests`モジュールにに依存しています。pipなどを用いて予めインストールして置いて下さい。
+
+```
+$ python3 -m pip install requests
+$ python3 clipanda.py -h
+```
+
+### using runtime included binary
+[こちら](https://github.com/face0u0/clipanda/releases)からダウンロードして下さい。（linuxのみ）
+
+```
+$ chmod u+x ./clipanda
+$ ./clipanda -h
+```
 
 ## 使い方
+
+オプションは`-h`オプションを指定して確認することも可能です。
+```
+$ clipanda -h
+$ clidanda sites -h
+```
 
 ### ログイン
 ほとんどの操作でログインが必要なため、`clipanda login`コマンドを用いてcookieを書き出します。
@@ -39,8 +62,6 @@ $ clipanda resources-dl [-c {cookie-file}] -s {site-id}
 ```
 `site-id`は`clipanda sites`コマンドを用いて取得します。
 `-d`オプションを指定することでダウンロード先のディレクトリを指定できます。
-
-その他細かいオプションは`-h`オプションを指定して確認して下さい。
 
 ### 課題ファイルをダウンロード
 各サイト（講義）の課題の一括ダウンロードも可能です。
