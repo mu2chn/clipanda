@@ -206,24 +206,24 @@ if __name__ == "__main__":
     psr_session = subpsrs.add_parser("login", help="see login -h")
     psr_session.add_argument("-u", "--username", required=True, help="ecs-id")
     psr_session.add_argument("-p", "--password", help="if not selected, show prompt.")
-    psr_session.add_argument("-o", "--output", nargs="?", const="cookie", help="cookie output file. if blank, 'coookie'")
+    psr_session.add_argument("-o", "--output", nargs="?", const=".cookies", help="cookie output file. if blank, saved in '.cookie'")
     psr_session.set_defaults(handler=CommandHandler.createSession)
     
     psr_sites = subpsrs.add_parser("sites", help="see sites -h")
     psr_sites.set_defaults(handler=CommandHandler.list)
-    psr_sites.add_argument("-c", "--cookies", default="cookie", metavar="COOKIE_FILE", help="select cookies file")
+    psr_sites.add_argument("-c", "--cookies", default=".cookies", metavar="COOKIE_FILE", help="select cookies file")
     psr_sites.add_argument("--site-type", help="course, project, portfolio etc ")
     psr_sites.add_argument("--only-site-id", action='store_true')
 
     psr_resources = subpsrs.add_parser("resources-dl", help="see resources-dl -h")
     psr_resources.set_defaults(handler=CommandHandler.downloadResources)
-    psr_resources.add_argument("-c", "--cookies", default="cookie", metavar="COOKIE_FILE", help="select cookies file")
+    psr_resources.add_argument("-c", "--cookies", default=".cookies", metavar="COOKIE_FILE", help="select cookies file")
     psr_resources.add_argument("-s", "--site-id", required=True, help="select site id")
     psr_resources.add_argument("-d", "--directory", default="content/", help="select site id")
 
     psr_attachments = subpsrs.add_parser("assignments-dl", help="see assignments-dl -h")
     psr_attachments.set_defaults(handler=CommandHandler.downloadAttachments)
-    psr_attachments.add_argument("-c", "--cookies", default="cookie", metavar="COOKIE_FILE", help="select cookies file")
+    psr_attachments.add_argument("-c", "--cookies", default=".cookies", metavar="COOKIE_FILE", help="select cookies file")
     psr_attachments.add_argument("-s", "--site-id", required=True, help="select site id")
     psr_attachments.add_argument("-d", "--directory", default="content/", help="select site id")
 
@@ -236,7 +236,7 @@ if __name__ == "__main__":
             try:
                 cookie = FileHandler.readFile(cookieDir, cookieFile)
             except FileNotFoundError:
-                raise FileNotFoundError("cookie file cannot open. use -c to set correct cookie file.")
+                raise FileNotFoundError("COOKIE_FILE cannot open. use -c to set correct cookie file.")
             args.handler(args, cookie)
         else:
             args.handler(args, None)

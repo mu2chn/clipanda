@@ -14,12 +14,12 @@
 認証が必要なページは書き出されたcookieを指定することでアクセスが可能です。
 
 ```
-$ clipanda login -u {ecs-id} -o {cookie-output-file}
+$ clipanda login -u {ecs-id} -o
 Password:
 ```
-`-p`オプションを用いてそのままパスワードを指定することも可能です
+`-o`オプションは引数にファイル名を指定しますが、引数がないとき、デフォルトで`.cookies`に保存されます。`-p`オプションを用いてそのままパスワードを指定することも可能です。
 ```
-$ clipanda login -u {ecs-id} -p {password} -o {cookie-output-file}
+$ clipanda login -u {ecs-id} -p {password} -o
 ```
 
 ### サイト一覧を表示
