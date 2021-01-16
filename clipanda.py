@@ -18,7 +18,8 @@ class PandaFile:
     def fromResponse(json):
         directory = "/".join(json["container"].split("/")[4:])
         path = urllib.parse.urlparse(json["url"]).path
-        return PandaFile(filename=json["title"], directory=directory, size=int(json["size"]), path=path)    
+        filename = urllib.parse.unquote(path.split("/")[-1])
+        return PandaFile(filename=filename, directory=directory, size=int(json["size"]), path=path)    
 
     def __init__(self, filename, directory: str, path: str, size=None):
         self.filename = filename
@@ -74,8 +75,14 @@ class PandaClient:
         res = rq.get(url, cookies=cookieDict)
         return PandaClient.__covertRespose(res)
 
-    def downloadFiles(self, path: str):
+    def downloadContent(self, path: str):
         res = self.__get(path)
+        # 著作権確認画面
+        if re.match(r'b\'<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"', str(res.content)):
+            atag = re.search(r'<a href=".*" style="background-color:#EEE;border:1px solid #4A5573;color:#4A5573;padding:3px;text-decoration:none">', str(res.content)).group()
+            url = re.sub(r'(<a href="|" style="background-color:#EEE;border:1px solid #4A5573;color:#4A5573;padding:3px;text-decoration:none">)', "", atag)
+            splitted = urllib.parse.urlsplit(url)
+            res = self.__get(splitted.path + "?" +splitted.query)
         return res.content
 
     @staticmethod
@@ -177,7 +184,7 @@ class CommandHandler:
 
         files = pc.fetchResources(args.site_id)
         for f in files:
-            binary = pc.downloadFiles(f.path)
+            binary = pc.downloadContent(f.path)
             FileHandler.saveFile(os.path.join(args.directory, f.directory), f.filename, binary)
 
     @staticmethod
@@ -186,7 +193,7 @@ class CommandHandler:
 
         files = pc.fetchAssignmentsAttachments(args.site_id)
         for f in files:
-            binary = pc.downloadFiles(f.path)
+            binary = pc.downloadContent(f.path)
             FileHandler.saveFile(os.path.join(args.directory, f.directory), f.filename, binary)
 
     @staticmethod
