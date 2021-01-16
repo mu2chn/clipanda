@@ -30,6 +30,9 @@ class PandaFile:
 
     def localPath(self):
         return os.path.join(self.directory, self.filename)
+    
+    def ext(self):
+        return os.path.splitext(self.filename)[1][1:]
 
 
 class PandaSite:
@@ -183,18 +186,22 @@ class CommandHandler:
         pc = PandaClient(cookies)
 
         files = pc.fetchResources(args.site_id)
+        excludes = args.exclude if args.exclude != None else []
         for f in files:
-            binary = pc.downloadContent(f.path)
-            FileHandler.saveFile(os.path.join(args.directory, f.directory), f.filename, binary)
+            if not f.ext() in excludes:
+                binary = pc.downloadContent(f.path)
+                FileHandler.saveFile(os.path.join(args.directory, f.directory), f.filename, binary)
 
     @staticmethod
     def downloadAttachments(args, cookies):
         pc = PandaClient(cookies)
 
         files = pc.fetchAssignmentsAttachments(args.site_id)
+        excludes = args.exclude if args.exclude != None else []
         for f in files:
-            binary = pc.downloadContent(f.path)
-            FileHandler.saveFile(os.path.join(args.directory, f.directory), f.filename, binary)
+            if not f.ext() in excludes:
+                binary = pc.downloadContent(f.path)
+                FileHandler.saveFile(os.path.join(args.directory, f.directory), f.filename, binary)
 
     @staticmethod
     def createSession(args, cookies):
@@ -227,12 +234,14 @@ if __name__ == "__main__":
     psr_resources.add_argument("-c", "--cookies", default=".cookies", metavar="COOKIE_FILE", help="select cookies file, if blank, use '.cookies'")
     psr_resources.add_argument("-s", "--site-id", required=True, help="select site id")
     psr_resources.add_argument("-d", "--directory", default="content/", help="directory to save contents")
+    psr_resources.add_argument("-e", "--exclude", nargs="*", help="exclude by extention, ex) '-e m4a mp4'")
 
     psr_attachments = subpsrs.add_parser("assignments-dl", help="see assignments-dl -h")
     psr_attachments.set_defaults(handler=CommandHandler.downloadAttachments)
     psr_attachments.add_argument("-c", "--cookies", default=".cookies", metavar="COOKIE_FILE", help="select cookies file, if blank, use '.cookies'")
     psr_attachments.add_argument("-s", "--site-id", required=True, help="select site id")
     psr_attachments.add_argument("-d", "--directory", default="content/", help="directory to save contents")
+    psr_attachments.add_argument("-e", "--exclude", nargs="*", help="exclude by extention, ex) '-e m4a mp4'")
 
     args = psr.parse_args()
 
