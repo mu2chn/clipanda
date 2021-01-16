@@ -218,21 +218,21 @@ if __name__ == "__main__":
     
     psr_sites = subpsrs.add_parser("sites", help="see sites -h")
     psr_sites.set_defaults(handler=CommandHandler.list)
-    psr_sites.add_argument("-c", "--cookies", default=".cookies", metavar="COOKIE_FILE", help="select cookies file")
+    psr_sites.add_argument("-c", "--cookies", default=".cookies", metavar="COOKIE_FILE", help="select cookies file, if blank, use '.cookies'")
     psr_sites.add_argument("--site-type", help="course, project, portfolio etc ")
     psr_sites.add_argument("--only-site-id", action='store_true')
 
     psr_resources = subpsrs.add_parser("resources-dl", help="see resources-dl -h")
     psr_resources.set_defaults(handler=CommandHandler.downloadResources)
-    psr_resources.add_argument("-c", "--cookies", default=".cookies", metavar="COOKIE_FILE", help="select cookies file")
+    psr_resources.add_argument("-c", "--cookies", default=".cookies", metavar="COOKIE_FILE", help="select cookies file, if blank, use '.cookies'")
     psr_resources.add_argument("-s", "--site-id", required=True, help="select site id")
-    psr_resources.add_argument("-d", "--directory", default="content/", help="select site id")
+    psr_resources.add_argument("-d", "--directory", default="content/", help="directory to save contents")
 
     psr_attachments = subpsrs.add_parser("assignments-dl", help="see assignments-dl -h")
     psr_attachments.set_defaults(handler=CommandHandler.downloadAttachments)
-    psr_attachments.add_argument("-c", "--cookies", default=".cookies", metavar="COOKIE_FILE", help="select cookies file")
+    psr_attachments.add_argument("-c", "--cookies", default=".cookies", metavar="COOKIE_FILE", help="select cookies file, if blank, use '.cookies'")
     psr_attachments.add_argument("-s", "--site-id", required=True, help="select site id")
-    psr_attachments.add_argument("-d", "--directory", default="content/", help="select site id")
+    psr_attachments.add_argument("-d", "--directory", default="content/", help="directory to save contents")
 
     args = psr.parse_args()
 
