@@ -59,6 +59,11 @@ $ clipanda resources-dl [-c {cookie-file}] -s {site-id}
 ```
 `site-id`は`clipanda sites`コマンドを用いて取得します。
 `-d`オプションを指定することでダウンロード先のディレクトリを指定できます。
+`-e`オプションを指定することで一部の拡張子を除いてファイルを保存できます。
+
+```
+$ clipanda resources-dl -s {site-id} -d content/class0 -e m4a mp4
+```
 
 ### 課題ファイルをダウンロード
 各サイト（講義）の課題の一括ダウンロードも可能です。
