@@ -37,7 +37,8 @@ $ clipanda sites -h
 $ clipanda login -u {ecs-id} -o
 Password:
 ```
-`-o`オプションは引数にファイル名を指定しますが、引数がないとき、デフォルトで`.cookies`に保存されます。`-p`オプションを用いてそのままパスワードを指定することも可能です。
+- `-o`オプションは引数にファイル名を指定しますが、引数がないとき、デフォルトで`.cookies`に保存されます。
+- `-p`オプションを用いてそのままパスワードを指定することも可能です。
 ```
 $ clipanda login -u {ecs-id} -p {password} -o
 ```
@@ -46,7 +47,7 @@ $ clipanda login -u {ecs-id} -p {password} -o
 ```
 $ clipanda sites [-c {cookie-file}]
 ```
-`--site-type`を指定することで絞り込みが可能です。例えば`course`を指定すると通常の講義のみが出力されます。
+- `--site-type`を指定することで絞り込みが可能です。例えば`course`を指定すると通常の講義のみが出力されます。
 ```
 $ clipanda sites [-c {cookie-file}] --site-type course
 ```
@@ -57,9 +58,10 @@ $ clipanda sites [-c {cookie-file}] --site-type course
 ```
 $ clipanda resources-dl [-c {cookie-file}] -s {site-id}
 ```
-`site-id`は`clipanda sites`コマンドを用いて取得します。
-`-d`オプションを指定することでダウンロード先のディレクトリを指定できます。
-`-e`オプションを指定することで一部の拡張子を除いてファイルを保存できます。
+
+- `site-id`は`clipanda sites`コマンドを用いて取得します。
+- `-d`オプションを指定することでダウンロード先のディレクトリを指定できます。
+- `-e`オプションを指定することで一部の拡張子を除いてファイルを保存できます。
 
 ```
 $ clipanda resources-dl -s {site-id} -d content/class0 -e m4a mp4
@@ -70,4 +72,4 @@ $ clipanda resources-dl -s {site-id} -d content/class0 -e m4a mp4
 ```
 $ clipanda assignments-dl [-c {cookie-file}] -s {site-id}
 ```
-オプションは`clipanda resources-dl`とほぼ同じです。
+- オプションは`clipanda resources-dl`とほぼ同じです。
