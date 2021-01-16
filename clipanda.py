@@ -113,6 +113,12 @@ class PandaClient:
             cookieLists.append(f"{key}={value};")
         return "".join(cookieLists)
 
+    def fetchSite(self, siteId: str):
+        path = f"direct/site/{siteId}.json"
+        res = self.__get(path)
+        content = json.loads(res.content)
+        return PandaSite(siteId, sitetype=content["type"], name=content["title"])
+
     def fetchSites(self):
         path = "direct/site.json"
         res = self.__get(path)
@@ -184,24 +190,26 @@ class CommandHandler:
     @staticmethod
     def downloadResources(args, cookies):
         pc = PandaClient(cookies)
-
+        site = pc.fetchSite(args.site_id)
         files = pc.fetchResources(args.site_id)
         excludes = args.exclude if args.exclude != None else []
+        baseDir = args.directory if args.directory != None else site.name
         for f in files:
             if not f.ext() in excludes:
                 binary = pc.downloadContent(f.path)
-                FileHandler.saveFile(os.path.join(args.directory, f.directory), f.filename, binary)
+                FileHandler.saveFile(os.path.join(baseDir, f.directory), f.filename, binary)
 
     @staticmethod
     def downloadAttachments(args, cookies):
         pc = PandaClient(cookies)
-
+        site = pc.fetchSite(args.site_id)
         files = pc.fetchAssignmentsAttachments(args.site_id)
         excludes = args.exclude if args.exclude != None else []
+        baseDir = args.directory if args.directory != None else site.name
         for f in files:
             if not f.ext() in excludes:
                 binary = pc.downloadContent(f.path)
-                FileHandler.saveFile(os.path.join(args.directory, f.directory), f.filename, binary)
+                FileHandler.saveFile(os.path.join(baseDir, f.directory), f.filename, binary)
 
     @staticmethod
     def createSession(args, cookies):
@@ -233,14 +241,14 @@ if __name__ == "__main__":
     psr_resources.set_defaults(handler=CommandHandler.downloadResources)
     psr_resources.add_argument("-c", "--cookies", default=".cookies", metavar="COOKIE_FILE", help="select cookies file, if blank, use '.cookies'")
     psr_resources.add_argument("-s", "--site-id", required=True, help="select site id")
-    psr_resources.add_argument("-d", "--directory", default="content/", help="directory to save contents")
+    psr_resources.add_argument("-d", "--directory", help="directory to save contents. default: SITENAME")
     psr_resources.add_argument("-e", "--exclude", nargs="*", help="exclude by extention, ex) '-e m4a mp4'")
 
     psr_attachments = subpsrs.add_parser("assignments-dl", help="see assignments-dl -h")
     psr_attachments.set_defaults(handler=CommandHandler.downloadAttachments)
     psr_attachments.add_argument("-c", "--cookies", default=".cookies", metavar="COOKIE_FILE", help="select cookies file, if blank, use '.cookies'")
     psr_attachments.add_argument("-s", "--site-id", required=True, help="select site id")
-    psr_attachments.add_argument("-d", "--directory", default="content/", help="directory to save contents")
+    psr_attachments.add_argument("-d", "--directory", help="directory to save contents. default: SITENAME")
     psr_attachments.add_argument("-e", "--exclude", nargs="*", help="exclude by extention, ex) '-e m4a mp4'")
 
     args = psr.parse_args()
