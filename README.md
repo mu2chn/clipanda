@@ -9,6 +9,7 @@
 
 ```
 $ python3 -m pip install requests
+$ curl -sLO https://raw.githubusercontent.com/face0u0/clipanda/master/clipanda.py 
 $ python3 clipanda.py -h
 ```
 
