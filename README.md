@@ -24,18 +24,18 @@ $ clipanda login -u {ecs-id} -p {password} -o
 
 ### サイト一覧を表示
 ```
-$ clipanda sites -c {cookie-file}
+$ clipanda sites [-c {cookie-file}]
 ```
 `--site-type`を指定することで絞り込みが可能です。例えば`course`を指定すると通常の講義のみが出力されます。
 ```
-$ clipanda sites -c {cookie-file} --site-type course
+$ clipanda sites [-c {cookie-file}] --site-type course
 ```
 `--only-site-id`は`site-id`のみを出力します。
 
 ### 授業資料をダウンロード
 各サイト（講義）の資料の一括ダウンロードが可能です。
 ```
-$ clipanda resources-dl -c {cookie-file} -s {site-id}
+$ clipanda resources-dl [-c {cookie-file}] -s {site-id}
 ```
 `site-id`は`clipanda sites`コマンドを用いて取得します。
 `-d`オプションを指定することでダウンロード先のディレクトリを指定できます。
@@ -45,6 +45,6 @@ $ clipanda resources-dl -c {cookie-file} -s {site-id}
 ### 課題ファイルをダウンロード
 各サイト（講義）の課題の一括ダウンロードも可能です。
 ```
-$ clipanda assignments-dl -c {cookie-file} -s {site-id}
+$ clipanda assignments-dl [-c {cookie-file}] -s {site-id}
 ```
 オプションは`clipanda resources-dl`とほぼ同じです。
