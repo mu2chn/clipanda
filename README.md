@@ -2,9 +2,6 @@
 
 京都大学サイバーラーニングスペースPandAのCLIアプリケーションです。一部の手間のかかる処理を自動で行います。
 
-## ダウンロード
-[こちら](https://github.com/face0u0/clipanda/releases)からダウンロードできます。
-
 ## インストール
 
 ### using system installed python
