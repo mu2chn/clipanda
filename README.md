@@ -38,7 +38,7 @@ $ clipanda sites -h
 $ clipanda login -u {ecs-id} -o
 Password:
 ```
-- `-o`オプションは引数にファイル名を指定しますが、引数がないとき、デフォルトで`.cookies`に保存されます。
+- `-o`オプションは引数にcookieを保存したいファイル名を指定しますが、引数がないとき、デフォルトで`.cookies`に保存されます。
 - `-p`オプションを用いてそのままパスワードを指定することも可能です。
 ```
 $ clipanda login -u {ecs-id} -p {password} -o
