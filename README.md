@@ -74,3 +74,10 @@ $ clipanda resources-dl -s {site-id} -d content/class0 -e m4a mp4
 $ clipanda assignments-dl [-c {cookie-file}] -s {site-id}
 ```
 - オプションは`clipanda resources-dl`とほぼ同じです。
+
+### Tips
+
+- すべてのファイルをダウンロード
+```
+$ clipanda sites --only-site-id --site-type course | xargs -n1 clipanda resources-dl -s
+```
