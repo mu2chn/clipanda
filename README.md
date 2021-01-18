@@ -77,7 +77,7 @@ $ clipanda assignments-dl [-c {cookie-file}] -s {site-id}
 
 ### Tips
 
-- すべてのファイルをダウンロード
+- すべてのリソースをダウンロード
 ```
 $ clipanda sites --only-site-id --site-type course | xargs -n1 clipanda resources-dl -s
 ```
