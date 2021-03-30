@@ -195,7 +195,7 @@ class CommandHandler:
         files = pc.fetchResources(args.site_id)
         excludes = args.exclude if args.exclude != None else []
         baseDir = args.directory if args.directory != None else site.name
-        pbar = tqdm(files)
+        pbar = tqdm(files, ncols=0)
         for f in pbar:
             pbar.set_description('Downloading "%s"' % f.filename)
             try:
@@ -212,7 +212,7 @@ class CommandHandler:
         files = pc.fetchAssignmentsAttachments(args.site_id)
         excludes = args.exclude if args.exclude != None else []
         baseDir = args.directory if args.directory != None else site.name
-        pbar = tqdm(files)
+        pbar = tqdm(files, ncols=0)
         for f in pbar:
             pbar.set_description('Downloading "%s"' % f.filename)
             try:
