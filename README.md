@@ -38,7 +38,7 @@ $ clipanda sites -h
 $ clipanda login -u {ecs-id} -o
 Password:
 ```
-- `-o`オプションは引数にファイル名を指定しますが、引数がないとき、デフォルトで`.cookies`に保存されます。
+- `-o`オプションは引数にcookieを保存したいファイル名を指定しますが、引数がないとき、デフォルトで`.cookies`に保存されます。
 - `-p`オプションを用いてそのままパスワードを指定することも可能です。
 ```
 $ clipanda login -u {ecs-id} -p {password} -o
@@ -74,3 +74,10 @@ $ clipanda resources-dl -s {site-id} -d content/class0 -e m4a mp4
 $ clipanda assignments-dl [-c {cookie-file}] -s {site-id}
 ```
 - オプションは`clipanda resources-dl`とほぼ同じです。
+
+### Tips
+
+- すべてのリソースをダウンロード
+```
+$ clipanda sites --only-site-id --site-type course | xargs -n1 clipanda resources-dl -s
+```
