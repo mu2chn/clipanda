@@ -1,19 +1,8 @@
-.PHONY: clean build dependency buildwin install
-
-clean:
-	rm -rf build/
-	rm *.spec
-
-buildwin:
-	pyinstaller clipanda.py --windowed --onefile
-	make clean
-
-build:
-	pyinstaller clipanda.py --onefile
-	make clean
+.PHONY: build dependency 
 
 dependency:
 	python3 -m pip install pyinstaller requests
 
 install:
-	cp ./dist/clipanda ~/.local/bin/
+	cp ./clipanda.py ~/.local/bin/clipanda
+	chmod u+x ~/.local/bin/clipanda

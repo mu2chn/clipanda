@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 import requests as rq
 import urllib.parse
 import argparse, os, json, re, getpass, sys
@@ -10,7 +11,6 @@ class HttpResponse:
     def __init__(self, status: int, content):
         self.status = status
         self.content = content
-
 
 class PandaFile:
 
@@ -237,14 +237,14 @@ if __name__ == "__main__":
     psr_sites.add_argument("--site-type", help="course, project, portfolio etc ")
     psr_sites.add_argument("--only-site-id", action='store_true')
 
-    psr_resources = subpsrs.add_parser("resources-dl", help="see resources-dl -h")
+    psr_resources = subpsrs.add_parser("resources", help="see resources -h")
     psr_resources.set_defaults(handler=CommandHandler.downloadResources)
     psr_resources.add_argument("-c", "--cookies", default=".cookies", metavar="COOKIE_FILE", help="select cookies file, if blank, use '.cookies'")
     psr_resources.add_argument("-s", "--site-id", required=True, help="select site id")
     psr_resources.add_argument("-d", "--directory", help="directory to save contents. default: SITENAME")
     psr_resources.add_argument("-e", "--exclude", nargs="*", help="exclude by extention, ex) '-e m4a mp4'")
 
-    psr_attachments = subpsrs.add_parser("assignments-dl", help="see assignments-dl -h")
+    psr_attachments = subpsrs.add_parser("assignments", help="see assignments -h")
     psr_attachments.set_defaults(handler=CommandHandler.downloadAttachments)
     psr_attachments.add_argument("-c", "--cookies", default=".cookies", metavar="COOKIE_FILE", help="select cookies file, if blank, use '.cookies'")
     psr_attachments.add_argument("-s", "--site-id", required=True, help="select site id")
