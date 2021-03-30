@@ -195,13 +195,15 @@ class CommandHandler:
         files = pc.fetchResources(args.site_id)
         excludes = args.exclude if args.exclude != None else []
         baseDir = args.directory if args.directory != None else site.name
-        for f in tqdm(files):
+        pbar = tqdm(files)
+        for f in pbar:
+            pbar.set_description('Downloading "%s"' % f.filename)
             try:
                 if not f.ext() in excludes:
                     binary = pc.downloadContent(f.path)
                     FileHandler.saveFile(os.path.join(baseDir, f.directory), f.filename, binary)
             except Exception:
-                print('\nError: skipped download: "'+f.filename+'"', file=sys.stderr)
+                print('\nWARN: skipped download: "'+f.filename+'"', file=sys.stderr)
 
     @staticmethod
     def downloadAttachments(args, cookies):
@@ -210,13 +212,15 @@ class CommandHandler:
         files = pc.fetchAssignmentsAttachments(args.site_id)
         excludes = args.exclude if args.exclude != None else []
         baseDir = args.directory if args.directory != None else site.name
-        for f in tqdm(files):
+        pbar = tqdm(files)
+        for f in pbar:
+            pbar.set_description('Downloading "%s"' % f.filename)
             try:
                 if not f.ext() in excludes:
                     binary = pc.downloadContent(f.path)
                     FileHandler.saveFile(os.path.join(baseDir, f.directory), f.filename, binary)
             except Exception:
-                print('\nError: skipped download: "'+f.filename+'"', file=sys.stderr)
+                print('\nWARN: skipped download: "'+f.filename+'"', file=sys.stderr)
 
     @staticmethod
     def createSession(args, cookies):
