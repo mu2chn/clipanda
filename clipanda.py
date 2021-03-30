@@ -228,7 +228,7 @@ if __name__ == "__main__":
     psr_session = subpsrs.add_parser("login", help="see login -h")
     psr_session.add_argument("-u", "--username", required=True, help="ecs-id")
     psr_session.add_argument("-p", "--password", help="if not selected, show prompt.")
-    psr_session.add_argument("-o", "--output", nargs="?", const=".cookies", help="cookie output file. if blank, saved in '.cookie'")
+    psr_session.add_argument("-o", "--output", nargs="?", const=".cookies", help="cookie output file. if blank, saved in '.cookies'")
     psr_session.set_defaults(handler=CommandHandler.createSession)
     
     psr_sites = subpsrs.add_parser("sites", help="see sites -h")
