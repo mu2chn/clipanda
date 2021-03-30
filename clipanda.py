@@ -106,10 +106,10 @@ class PandaClient:
             "_eventId": "submit",
             "submit": "LOGIN"
         }), headers={'Content-Type': 'application/x-www-form-urlencoded'})
-        if len(postResp.history) != 3:
+        if len(postResp.history) != 2:
             raise LoginFailedException()
         cookieLists = []
-        for key, value in postResp.history[1].cookies.items():
+        for key, value in postResp.history[1].cookies.items()[0:1]: # 一個目を持ってくる
             cookieLists.append(f"{key}={value};")
         return "".join(cookieLists)
 
