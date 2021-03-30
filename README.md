@@ -5,7 +5,6 @@
 ## インストール
 
 ### using system installed python
-`requests`モジュールに依存しています。pipなどを用いて予めインストールしておいて下さい。
 
 ```
 $ git clone https://github.com/face0u0/clipanda
