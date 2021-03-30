@@ -8,17 +8,9 @@
 `requests`モジュールに依存しています。pipなどを用いて予めインストールしておいて下さい。
 
 ```
-$ python3 -m pip install requests
-$ curl -sLO https://raw.githubusercontent.com/face0u0/clipanda/master/clipanda.py 
-$ python3 clipanda.py -h
-```
-
-### using runtime included binary
-[こちら](https://github.com/face0u0/clipanda/releases)からダウンロードして下さい。（linuxのみ）
-
-```
-$ chmod u+x ./clipanda
-$ ./clipanda -h
+$ git clone https://github.com/face0u0/clipanda
+$ make dependency
+$ make install
 ```
 
 ## 使い方
@@ -57,7 +49,7 @@ $ clipanda sites [-c {cookie-file}] --site-type course
 ### 授業資料をダウンロード
 各サイト（講義）の資料の一括ダウンロードが可能です。
 ```
-$ clipanda resources-dl [-c {cookie-file}] -s {site-id}
+$ clipanda resources [-c {cookie-file}] -s {site-id}
 ```
 
 - `site-id`は`clipanda sites`コマンドを用いて取得します。
@@ -65,19 +57,19 @@ $ clipanda resources-dl [-c {cookie-file}] -s {site-id}
 - `-e`オプションを指定することで一部の拡張子を除いてファイルを保存できます。
 
 ```
-$ clipanda resources-dl -s {site-id} -d content/class0 -e m4a mp4
+$ clipanda resources -s {site-id} -d content/class0 -e m4a mp4
 ```
 
 ### 課題ファイルをダウンロード
 各サイト（講義）の課題の一括ダウンロードも可能です。
 ```
-$ clipanda assignments-dl [-c {cookie-file}] -s {site-id}
+$ clipanda assignments [-c {cookie-file}] -s {site-id}
 ```
-- オプションは`clipanda resources-dl`とほぼ同じです。
+- オプションは`clipanda resources`とほぼ同じです。
 
 ### Tips
 
 - すべてのリソースをダウンロード
 ```
-$ clipanda sites --only-site-id --site-type course | xargs -n1 clipanda resources-dl -s
+$ clipanda sites --only-site-id --site-type course | xargs -n1 clipanda resources -s
 ```
